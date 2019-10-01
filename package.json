@@ -1,0 +1,24 @@
+{
+  "name": "blogilista_backend",
+  "version": "1.0.0",
+  "description": "Part 4 exercises",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "watch": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "author": "Janne Lahtinen",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^6.5.0",
+    "nodemon": "^1.19.3"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.1.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.7.3"
+  }
+}
