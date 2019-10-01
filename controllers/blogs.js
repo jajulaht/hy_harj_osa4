@@ -4,6 +4,7 @@ const Blog = require('../models/blog')
 // Get rid of favicon error
 blogsRouter.get('/favicon.ico', (req, res) => res.status(204))
 
+// Get all blogs
 blogsRouter.get('/', (request, response) => {
   Blog
     .find({})
@@ -12,6 +13,7 @@ blogsRouter.get('/', (request, response) => {
     })
 })
 
+// Post new blog
 blogsRouter.post('/', (request, response) => {
   const blog = new Blog(request.body)
 
