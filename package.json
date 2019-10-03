@@ -4,17 +4,19 @@
   "description": "Part 4 exercises",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "watch": "nodemon index.js",
-    "test": "jest --verbose",
-    "lint": "eslint ."
+    "start": "NODE_ENV=production node index.js",
+    "watch": "NODE_ENV=development nodemon index.js",
+    "lint": "eslint .",
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
   },
   "author": "Janne Lahtinen",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^6.0.3",
     "eslint": "^6.5.0",
     "jest": "^24.9.0",
-    "nodemon": "^1.19.3"
+    "nodemon": "^1.19.3",
+    "supertest": "^4.0.2"
   },
   "dependencies": {
     "cors": "^2.8.5",
