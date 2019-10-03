@@ -43,6 +43,14 @@ test('there are two blogs', async () => {
   expect(response.body.length).toBe(2)
 })
 
+test('ids are defined', async () => {
+  const response = await api.get('/api/blogs')
+  const coll = response.body
+  for (const blog of coll) {
+    expect(blog.id).toBeDefined()
+  }
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
