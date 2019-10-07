@@ -51,6 +51,34 @@ test('ids are defined', async () => {
   }
 })
 
+// title: String,
+// author: String,
+// url: String,
+// likes: Number
+test('a valid blog info can be added ', async () => {
+  const newBlog = {
+    title: 'First class tests, version 2.0',
+    author: 'Robert C. Martin',
+    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const titles = response.body.map(r => r.title)
+
+  expect(response.body.length).toBe(initialBlogs.length + 1)
+  expect(titles).toContain(
+    'First class tests, version 2.0'
+  )
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
