@@ -2,9 +2,15 @@ const mongoose = require('mongoose')
 
 // Blog note schema
 const blogSchema = mongoose.Schema({
-  title: String,
+  title: {
+    type: String,
+    required: true
+  },
   author: String,
-  url: String,
+  url: {
+    type: String,
+    required: true
+  },
   likes: {
     type: Number,
     required: true

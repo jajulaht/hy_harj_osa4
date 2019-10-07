@@ -5,8 +5,8 @@ const Blog = require('../models/blog')
 blogsRouter.get('/favicon.ico', (req, res) => res.status(204))
 
 // Get all blogs
-blogsRouter.get('/', (request, response) => {
-  Blog
+blogsRouter.get('/', async (request, response) => {
+  await Blog
     .find({})
     .then(blogs => {
       response.json(blogs)
@@ -14,17 +14,21 @@ blogsRouter.get('/', (request, response) => {
 })
 
 // Post new blog, default 0 for likes
-blogsRouter.post('/', (request, response) => {
-  const blog = new Blog(request.body)
-  if (blog.likes === undefined) {
-    blog.likes = 0
-  }
+blogsRouter.post('/', async (request, response, next) => {
+  const body = request.body
 
-  blog
-    .save()
-    .then(result => {
-      response.status(201).json(result)
-    })
+  const blog = new Blog({
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes === undefined ? 0 : body.likes
+  })
+  try {
+    const savedBlog = await blog.save()
+    response.json(savedBlog.toJSON())
+  } catch(exception) {
+    next(exception)
+  }
 })
 
 module.exports = blogsRouter

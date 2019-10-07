@@ -51,10 +51,7 @@ test('ids are defined', async () => {
   }
 })
 
-// title: String,
-// author: String,
-// url: String,
-// likes: Number
+// Test of adding a blog to db
 test('a valid blog info can be added', async () => {
   const newBlog = {
     title: 'First class tests, version 2.0',
@@ -66,7 +63,7 @@ test('a valid blog info can be added', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
-    .expect(201)
+    .expect(200)
     .expect('Content-Type', /application\/json/)
 
   const response = await api.get('/api/blogs')
@@ -79,6 +76,7 @@ test('a valid blog info can be added', async () => {
   )
 })
 
+// Test for default value of 0 for likes
 test('default 0 for likes', async () => {
   const newBlog = {
     title: 'First class tests, version 3.0',
@@ -89,7 +87,7 @@ test('default 0 for likes', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
-    .expect(201)
+    .expect(200)
     .expect('Content-Type', /application\/json/)
 
   const response = await api.get('/api/blogs')
@@ -98,6 +96,20 @@ test('default 0 for likes', async () => {
 
   expect(response.body.length).toBe(initialBlogs.length + 1)
   expect(theBlog.likes).toBe(0)
+})
+
+// Test for required fields
+test('title and url must be added to fields', async () => {
+  const newBlog = {
+    author: 'Robert C. Martin',
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+    .expect('Content-Type', /application\/json/)
 })
 
 afterAll(() => {
