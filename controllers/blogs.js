@@ -13,9 +13,12 @@ blogsRouter.get('/', (request, response) => {
     })
 })
 
-// Post new blog
+// Post new blog, default 0 for likes
 blogsRouter.post('/', (request, response) => {
   const blog = new Blog(request.body)
+  if (blog.likes === undefined) {
+    blog.likes = 0
+  }
 
   blog
     .save()

@@ -55,7 +55,7 @@ test('ids are defined', async () => {
 // author: String,
 // url: String,
 // likes: Number
-test('a valid blog info can be added ', async () => {
+test('a valid blog info can be added', async () => {
   const newBlog = {
     title: 'First class tests, version 2.0',
     author: 'Robert C. Martin',
@@ -77,6 +77,27 @@ test('a valid blog info can be added ', async () => {
   expect(titles).toContain(
     'First class tests, version 2.0'
   )
+})
+
+test('default 0 for likes', async () => {
+  const newBlog = {
+    title: 'First class tests, version 3.0',
+    author: 'Robert Murdoch',
+    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const theBlog = response.body.find( ({ author }) => author === 'Robert Murdoch' )
+
+  expect(response.body.length).toBe(initialBlogs.length + 1)
+  expect(theBlog.likes).toBe(0)
 })
 
 afterAll(() => {
