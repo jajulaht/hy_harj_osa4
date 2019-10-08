@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
+mongoose.set('useFindAndModify', false)
 
 const api = supertest(app)
 
@@ -17,99 +18,137 @@ const initialBlogs = [
     author: 'Edsger W. Dijkstra',
     url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
     likes: 5
+  },
+  {
+    _id: '5a422bc61b54a676234d17fc',
+    title: 'Type wars',
+    author: 'Robert C. Martin',
+    url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
+    likes: 2,
+    __v: 0
   }
 ]
 
-beforeEach(async () => {
-  await Blog.deleteMany({})
+// Tests for getting data from db
+describe('when there is initially some blog posts saved', () => {
+  beforeEach(async () => {
+    await Blog.deleteMany({})
 
-  let blogObject = new Blog(initialBlogs[0])
-  await blogObject.save()
+    let blogObject = new Blog(initialBlogs[0])
+    await blogObject.save()
 
-  blogObject = new Blog(initialBlogs[1])
-  await blogObject.save()
+    blogObject = new Blog(initialBlogs[1])
+    await blogObject.save()
+
+    blogObject = new Blog(initialBlogs[2])
+    await blogObject.save()
+  })
+
+  test('blogs are returned as json', async () => {
+    await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+  })
+
+  test('there are three blogs', async () => {
+    const response = await api.get('/api/blogs')
+    expect(response.body.length).toBe(3)
+  })
+
+  test('ids are defined', async () => {
+    const response = await api.get('/api/blogs')
+    const coll = response.body
+    for (const blog of coll) {
+      expect(blog.id).toBeDefined()
+    }
+  })
 })
 
-test('blogs are returned as json', async () => {
-  await api
-    .get('/api/blogs')
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
+// Tests for post, update etc.
+describe('tests for posting data to db', () => {
+  // Test of adding a blog to db
+  test('a valid blog info can be added', async () => {
+    const newBlog = {
+      title: 'First class tests, version 2.0',
+      author: 'Robert C. Martin',
+      url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+      likes: 10
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const titles = response.body.map(r => r.title)
+
+    expect(response.body.length).toBe(initialBlogs.length + 1)
+    expect(titles).toContain(
+      'First class tests, version 2.0'
+    )
+  })
+
+  // Test for default value of 0 for likes
+  test('default 0 for likes', async () => {
+    const newBlog = {
+      title: 'First class tests, version 3.0',
+      author: 'Robert Murdoch',
+      url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const theBlog = response.body.find( ({ author }) => author === 'Robert Murdoch' )
+
+    expect(response.body.length).toBe(initialBlogs.length + 2)
+    expect(theBlog.likes).toBe(0)
+  })
+
+  // Test for required fields
+  test('title and url must be added to fields, if not --> error', async () => {
+    const newBlog = {
+      author: 'Robert C. Martin',
+      likes: 10
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+  })
 })
 
-test('there are two blogs', async () => {
-  const response = await api.get('/api/blogs')
+// Tests for deleting from db
+describe('tests for deleting', () => {
+  // Test of adding a blog to db and then deleting it
+  test('a specific blog info can be deleted', async () => {
+    const response = await api.get('/api/blogs')
+    const blogsAtStart = response.body
+    const blogToDelete = blogsAtStart[0]
 
-  expect(response.body.length).toBe(2)
-})
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
 
-test('ids are defined', async () => {
-  const response = await api.get('/api/blogs')
-  const coll = response.body
-  for (const blog of coll) {
-    expect(blog.id).toBeDefined()
-  }
-})
+    const response2 = await api.get('/api/blogs')
+    const titles = response2.body.map(r => r.title)
 
-// Test of adding a blog to db
-test('a valid blog info can be added', async () => {
-  const newBlog = {
-    title: 'First class tests, version 2.0',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-    likes: 10
-  }
-
-  await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
-
-  const response = await api.get('/api/blogs')
-
-  const titles = response.body.map(r => r.title)
-
-  expect(response.body.length).toBe(initialBlogs.length + 1)
-  expect(titles).toContain(
-    'First class tests, version 2.0'
-  )
-})
-
-// Test for default value of 0 for likes
-test('default 0 for likes', async () => {
-  const newBlog = {
-    title: 'First class tests, version 3.0',
-    author: 'Robert Murdoch',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-  }
-
-  await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
-
-  const response = await api.get('/api/blogs')
-
-  const theBlog = response.body.find( ({ author }) => author === 'Robert Murdoch' )
-
-  expect(response.body.length).toBe(initialBlogs.length + 1)
-  expect(theBlog.likes).toBe(0)
-})
-
-// Test for required fields
-test('title and url must be added to fields', async () => {
-  const newBlog = {
-    author: 'Robert C. Martin',
-    likes: 10
-  }
-
-  await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(400)
-    .expect('Content-Type', /application\/json/)
+    expect(response2.body.length).toBe(initialBlogs.length + 1)
+    expect(titles).not.toContain(
+      'React patterns'
+    )
+  })
 })
 
 afterAll(() => {
