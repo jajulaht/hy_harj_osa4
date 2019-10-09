@@ -131,7 +131,7 @@ describe('tests for posting data to db', () => {
 
 // Tests for deleting from db
 describe('tests for deleting', () => {
-  // Test of adding a blog to db and then deleting it
+  // Test for deleting blog post
   test('a specific blog info can be deleted', async () => {
     const response = await api.get('/api/blogs')
     const blogsAtStart = response.body
@@ -148,6 +148,32 @@ describe('tests for deleting', () => {
     expect(titles).not.toContain(
       'React patterns'
     )
+  })
+})
+
+describe('tests for updating', () => {
+  // Test for updating likes
+  test('likes of a specific blog info can be updated', async () => {
+    const response = await api.get('/api/blogs')
+    const blogs = response.body
+    const blogToUpdate = blogs[1]
+    const updatedLikes =
+    {
+      id: blogToUpdate.id,
+      title: blogToUpdate.title,
+      author: blogToUpdate.author,
+      url: blogToUpdate.url,
+      likes: 6
+    }
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedLikes)
+      .expect(200)
+
+    const response2 = await api.get('/api/blogs')
+    const blogs2 = response2.body
+    expect(blogs2[1].likes).toBe(6)
   })
 })
 
