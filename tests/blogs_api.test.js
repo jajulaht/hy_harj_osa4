@@ -179,7 +179,6 @@ describe('tests for updating', () => {
 })
 
 // Tests for user
-
 describe('when there is initially one user at db', () => {
   beforeEach(async () => {
     await User.deleteMany({})
@@ -228,6 +227,48 @@ describe('when there is initially one user at db', () => {
 
     const usernames = usersAtEnd.map(u => u.username)
     expect(usernames).toContain(newUser.username)
+  })
+
+  test('no users with passwords under 3 chars are created', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'shortpass',
+      name: 'Seppo Säpikäs',
+      password: 'no',
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.error).toContain('too short password')
+
+    const usersAtEnd = await helper.usersInDb()
+    expect(usersAtEnd.length).toBe(usersAtStart.length)
+  })
+
+  test('no usernames under 3 chars are created', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'pp',
+      name: 'Pirkka Pekka Petelius',
+      password: 'herra47',
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.error).toContain('pp')
+
+    const usersAtEnd = await helper.usersInDb()
+    expect(usersAtEnd.length).toBe(usersAtStart.length)
   })
 })
 
