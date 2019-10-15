@@ -7,14 +7,18 @@ blogsRouter.get('/favicon.ico', (req, res) => res.status(204))
 
 // Get all blogs
 blogsRouter.get('/', async (request, response) => {
-  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
+  const blogs = await Blog
+    .find({})
+    .populate('user', { username: 1, name: 1 })
   response.json(blogs.map(blog => blog.toJSON()))
 })
 
 // Get one blog post
 blogsRouter.get('/:id', async (request, response, next) => {
   try {
-    const blog = await Blog.findById(request.params.id)
+    const blog = await Blog
+      .findById(request.params.id)
+      .populate('user', { username: 1, name: 1 })
     if (blog) {
       response.json(blog.toJSON())
     } else {

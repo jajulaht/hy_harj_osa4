@@ -30,154 +30,6 @@ const initialBlogs = [
   }
 ]
 
-// Tests for getting data from db
-describe('when there is initially some blog posts saved', () => {
-  beforeEach(async () => {
-    await Blog.deleteMany({})
-
-    let blogObject = new Blog(initialBlogs[0])
-    await blogObject.save()
-
-    blogObject = new Blog(initialBlogs[1])
-    await blogObject.save()
-
-    blogObject = new Blog(initialBlogs[2])
-    await blogObject.save()
-  })
-
-  test('blogs are returned as json', async () => {
-    await api
-      .get('/api/blogs')
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-  })
-
-  test('there are three blogs', async () => {
-    const response = await api.get('/api/blogs')
-    expect(response.body.length).toBe(3)
-  })
-
-  test('ids are defined', async () => {
-    const response = await api.get('/api/blogs')
-    const coll = response.body
-    for (const blog of coll) {
-      expect(blog.id).toBeDefined()
-    }
-  })
-})
-
-// Tests for post, update etc.
-describe('tests for posting data to db', () => {
-  // Test of adding a blog to db
-  test('a valid blog info can be added', async () => {
-    const newBlog = {
-      title: 'First class tests, version 2.0',
-      author: 'Robert C. Martin',
-      url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-      likes: 10
-    }
-
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-
-    const response = await api.get('/api/blogs')
-
-    const titles = response.body.map(r => r.title)
-
-    expect(response.body.length).toBe(initialBlogs.length + 1)
-    expect(titles).toContain(
-      'First class tests, version 2.0'
-    )
-  })
-
-  // Test for default value of 0 for likes
-  test('default 0 for likes', async () => {
-    const newBlog = {
-      title: 'First class tests, version 3.0',
-      author: 'Robert Murdoch',
-      url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
-    }
-
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-
-    const response = await api.get('/api/blogs')
-
-    const theBlog = response.body.find( ({ author }) => author === 'Robert Murdoch' )
-
-    expect(response.body.length).toBe(initialBlogs.length + 2)
-    expect(theBlog.likes).toBe(0)
-  })
-
-  // Test for required fields
-  test('title and url must be added to fields, if not --> error', async () => {
-    const newBlog = {
-      author: 'Robert C. Martin',
-      likes: 10
-    }
-
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(400)
-      .expect('Content-Type', /application\/json/)
-  })
-})
-
-// Tests for deleting from db
-describe('tests for deleting', () => {
-  // Test for deleting blog post
-  test('a specific blog info can be deleted', async () => {
-    const response = await api.get('/api/blogs')
-    const blogsAtStart = response.body
-    const blogToDelete = blogsAtStart[0]
-
-    await api
-      .delete(`/api/blogs/${blogToDelete.id}`)
-      .expect(204)
-
-    const response2 = await api.get('/api/blogs')
-    const titles = response2.body.map(r => r.title)
-
-    expect(response2.body.length).toBe(initialBlogs.length + 1)
-    expect(titles).not.toContain(
-      'React patterns'
-    )
-  })
-})
-
-describe('tests for updating', () => {
-  // Test for updating likes
-  test('likes of a specific blog info can be updated', async () => {
-    const response = await api.get('/api/blogs')
-    const blogs = response.body
-    const blogToUpdate = blogs[1]
-    const updatedLikes =
-    {
-      id: blogToUpdate.id,
-      title: blogToUpdate.title,
-      author: blogToUpdate.author,
-      url: blogToUpdate.url,
-      likes: 6
-    }
-
-    await api
-      .put(`/api/blogs/${blogToUpdate.id}`)
-      .send(updatedLikes)
-      .expect(200)
-
-    const response2 = await api.get('/api/blogs')
-    const blogs2 = response2.body
-    expect(blogs2[1].likes).toBe(6)
-  })
-})
-
 // Tests for user
 describe('when there is initially one user at db', () => {
   beforeEach(async () => {
@@ -269,6 +121,166 @@ describe('when there is initially one user at db', () => {
 
     const usernames = usersAtEnd.map(u => u.username)
     expect(usernames).toContain(newUser.username)
+  })
+})
+
+// Tests for getting data from db
+describe('when there is initially some blog posts saved', () => {
+  beforeEach(async () => {
+    await Blog.deleteMany({})
+
+    let blogObject = new Blog(initialBlogs[0])
+    await blogObject.save()
+
+    blogObject = new Blog(initialBlogs[1])
+    await blogObject.save()
+
+    blogObject = new Blog(initialBlogs[2])
+    await blogObject.save()
+  })
+
+  test('blogs are returned as json', async () => {
+    await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+  })
+
+  test('there are three blogs', async () => {
+    const response = await api.get('/api/blogs')
+    expect(response.body.length).toBe(3)
+  })
+
+  test('ids are defined', async () => {
+    const response = await api.get('/api/blogs')
+    const coll = response.body
+    for (const blog of coll) {
+      expect(blog.id).toBeDefined()
+    }
+  })
+})
+
+// Tests for post, update etc.
+describe('tests for posting data to db', () => {
+  // Test of adding a blog to db
+  test('a valid blog info can be added', async () => {
+    const usersAtStart = await helper.usersInDb()
+    const firstUserId = usersAtStart[0].id
+
+    const newBlog = {
+      title: 'First class tests, version 2.0',
+      author: 'Robert C. Martin',
+      url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+      likes: 10,
+      userId: firstUserId
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const titles = response.body.map(r => r.title)
+
+    expect(response.body.length).toBe(initialBlogs.length + 1)
+    expect(titles).toContain(
+      'First class tests, version 2.0'
+    )
+  })
+
+  // Test for default value of 0 for likes
+  test('default 0 for likes', async () => {
+    const usersAtStart = await helper.usersInDb()
+    const firstUserId = usersAtStart[0].id
+
+    const newBlog = {
+      title: 'First class tests, version 3.0',
+      author: 'Robert Murdoch',
+      url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html',
+      userId: firstUserId
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const theBlog = response.body.find( ({ author }) => author === 'Robert Murdoch' )
+
+    expect(response.body.length).toBe(initialBlogs.length + 2)
+    expect(theBlog.likes).toBe(0)
+  })
+
+  // Test for required fields
+  test('title and url must be added to fields, if not --> error', async () => {
+    const usersAtStart = await helper.usersInDb()
+    const firstUserId = usersAtStart[0].id
+
+    const newBlog = {
+      author: 'Robert C. Martin',
+      likes: 10,
+      userId: firstUserId
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+  })
+})
+
+// Tests for deleting from db
+describe('tests for deleting', () => {
+  // Test for deleting blog post
+  test('a specific blog info can be deleted', async () => {
+    const response = await api.get('/api/blogs')
+    const blogsAtStart = response.body
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const response2 = await api.get('/api/blogs')
+    const titles = response2.body.map(r => r.title)
+
+    expect(response2.body.length).toBe(initialBlogs.length + 1)
+    expect(titles).not.toContain(
+      'React patterns'
+    )
+  })
+})
+
+describe('tests for updating', () => {
+  // Test for updating likes
+  test('likes of a specific blog info can be updated', async () => {
+    const response = await api.get('/api/blogs')
+    const blogs = response.body
+    const blogToUpdate = blogs[1]
+    const updatedLikes =
+    {
+      id: blogToUpdate.id,
+      title: blogToUpdate.title,
+      author: blogToUpdate.author,
+      url: blogToUpdate.url,
+      likes: 6
+    }
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedLikes)
+      .expect(200)
+
+    const response2 = await api.get('/api/blogs')
+    const blogs2 = response2.body
+    expect(blogs2[1].likes).toBe(6)
   })
 })
 
