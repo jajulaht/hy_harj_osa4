@@ -8,6 +8,22 @@ usersRouter.get('/', async (request, response) => {
   response.json(users.map(u => u.toJSON()))
 })
 
+// Get one user
+usersRouter.get('/:id', async (request, response, next) => {
+  try {
+    const user = await User
+      .findById(request.params.id)
+      .populate('blogs')
+    if (user) {
+      response.json(user.toJSON())
+    } else {
+      response.status(404).end()
+    }
+  } catch (exception) {
+    next(exception)
+  }
+})
+
 // Add a new user
 usersRouter.post('/', async (request, response, next) => {
   try {
