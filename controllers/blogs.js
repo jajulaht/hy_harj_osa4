@@ -91,7 +91,6 @@ blogsRouter.put('/:id', (request, response, next) => {
     user: body.user.id
   }
 
-
   Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
     .then(updatedBlog => {
       response.json(updatedBlog.toJSON())
