@@ -26,16 +26,13 @@ commentRouter.post('/', async (request, response, next) => {
     const blog = await Blog.findById(body.blog)
     const savedComment = await newComment.save()
     await blog.save()
-    console.log('savedComment', savedComment)
     const alteredComment = {
-      _id: savedComment._id,
+      id: savedComment._id,
       content: savedComment.content,
-      blog: { id: savedComment.blog },
-      __v: savedComment.__v
+      blog: { id: savedComment.blog }
     }
     blog.comments = blog.comments.concat(alteredComment)
-    console.log('alteredComment', alteredComment)
-    response.json(savedComment.toJSON())
+    response.json(alteredComment)
   } catch(exception) {
     next(exception)
   }
