@@ -7,7 +7,8 @@
     "start": "NODE_ENV=production node index.js",
     "watch": "NODE_ENV=development nodemon index.js",
     "lint": "eslint .",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand",
+    "start:test": "cross-env NODE_ENV=test node index.js"
   },
   "author": "Janne Lahtinen",
   "license": "ISC",
